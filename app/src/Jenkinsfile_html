@@ -1,0 +1,49 @@
+pipeline {
+    agent any
+
+    stages {
+
+        stage('Checkout Code') {
+            steps {
+                git branch: 'main',
+                url: 'https://github.com/your-username/hello-app.git'
+            }
+        }
+
+        stage('Validate HTML') {
+            steps {
+                echo "Validating HTML file..."
+                sh 'ls -l'
+                sh 'cat index.html'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                echo "Building Docker image..."
+                sh 'docker build -t hello-html-app .'
+            }
+        }
+
+        stage('Run Container') {
+            steps {
+                echo "Running Docker container..."
+                sh '''
+                docker rm -f hello-app || true
+                docker run -d -p 8080:80 --name hello-app hello-html-app
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Application deployed successfully!"
+            echo "🌐 Access app at: http://<JENKINS_SERVER_IP>:8080"
+        }
+
+        failure {
+            echo "❌ Pipeline failed. Check logs."
+        }
+    }
+}
